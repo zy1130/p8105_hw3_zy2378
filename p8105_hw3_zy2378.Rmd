@@ -1,0 +1,115 @@
+---
+title: "p8105_hw3_zy2378"
+author: "zy"
+date: "10/18/2021"
+output: github_document
+---
+
+```{r}
+library(p8105.datasets)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+data("instacart")
+data("brfss_smart2010")
+instacart
+?ggplot
+```
+
+## Data Description
+The Instacart data contains observations on `r nrow(instacart)` orders from instacart store online. The data include `r ncol(instacart)` variables, and are the characteristics of the orders and the product，including product name, product id, order name, etc.
+For observation at row1, the order is id is 1, and product id is 49302, the order that the product was add to chart is 1, and it have been ordered before by this customer. The user id is 112108, and the order belongs to the train evaluation set. The order number for this user is 4, and the order was placed on Thursday 10am. It have been 9 days since this user's last order, and the product is Bulgarian Yogurt. The aisle id is 120, and the product belongs to the yogurt aisle. The department id is 16, and is dairy eggs.
+
+```{r}
+aisle_df1=
+  instacart%>%
+  group_by(aisle)%>%
+  summarize(n_obs=n())%>%
+  mutate(rank=rank(n_obs))
+
+aisle_df2=
+  aisle_df1%>%
+  filter(n_obs>=10000)%>%
+  select(-rank)
+aisle_df2
+
+
+
+
+
+```
+#
+1. There are 134 aisles, and the most items that ordered from is the fresh vagetables aisle.
+
+```{r}
+baking_ingredients_df=
+  instacart%>%
+  filter(aisle=="baking ingredients")%>%
+  group_by(product_name)%>%
+  summarize(n_obs=n())%>%
+  mutate(rank=rank(n_obs))%>%
+  filter(rank>=521)%>%
+  select(-rank)%>%
+  mutate(aisle=c("baking ingredients","baking ingredients","baking ingredients"))%>%
+  select(aisle,product_name,n_obs)
+baking_ingredients_df
+
+dog_food_care_df=
+  instacart%>%
+  filter(aisle=="dog food care")%>%
+  group_by(product_name)%>%
+  summarize(n_obs=n())%>%
+  mutate(rank=rank(n_obs))%>%
+  filter(rank>=353)%>%
+  select(-rank)%>%
+  mutate(aisle=c("dog food care","dog food care","dog food care"))%>%
+  select(aisle,product_name,n_obs)
+dog_food_care_df
+
+packaged_vegetables_fruits_df=
+  instacart%>%
+  filter(aisle=="packaged vegetables fruits")%>%
+  group_by(product_name)%>%
+  summarize(n_obs=n())%>%
+  mutate(rank=rank(n_obs))%>%
+  filter(rank>=564)%>%
+  select(-rank)%>%
+  mutate(aisle=c("packaged vegetables fruits","packaged vegetables fruits","packaged vegetables fruits"))%>%
+  select(aisle,product_name,n_obs)
+packaged_vegetables_fruits_df
+
+bind_rows(baking_ingredients_df,dog_food_care_df,packaged_vegetables_fruits_df)
+
+
+
+
+```
+
+```{r}
+pink_lady_apples_df=
+  instacart%>%
+  filter(product_name=="Pink Lady Apples")%>%
+  select(product_name,order_dow,order_hour_of_day)%>%
+  group_by(order_dow)%>%
+  summarize(mean=mean(order_hour_of_day))%>%
+  mutate(product_name=rep("Pink Lady Apples",7))%>%
+  select(product_name,order_dow,mean)
+pink_lady_apples_df
+
+coffee_ice_cream_df=
+  instacart%>%
+  filter(product_name=="Coffee Ice Cream")%>%
+  select(product_name,order_dow,order_hour_of_day)%>%
+  group_by(order_dow)%>%
+  summarize(mean=mean(order_hour_of_day))%>%  
+  mutate(product_name=rep("Coffee Ice Cream",7))%>%
+  select(product_name,order_dow,mean)
+coffee_ice_cream_df
+
+df_mean_order_hour_of_day=
+  bind_rows(pink_lady_apples_df,coffee_ice_cream_df)%>%
+  pivot_wider(names_from = order_dow,values_from=mean)%>%
+  rename("Sunday"="0","Monday"="1","Tuesday"="2","Wednesday"="3","Thursday"="4","Friday"="5","Saturday"="6")
+df_mean_order_hour_of_day
+```
+
