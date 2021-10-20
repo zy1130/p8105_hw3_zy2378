@@ -199,8 +199,51 @@ ggplot(brfss_data_value_df,aes(x=response,y=data_value,color=year))+
 3.The dataset have 75 rows and 23 columns, which contains 45 observations for the year 2010, and 30 observations for the year 2006.
 
 ##Problem 3
-```{r}
+```{r,fig.width = 6,fig.asp = .6}
+accel_df=
+  readr::read_csv("./data/accel_data.csv")%>%
+  janitor::clean_names()%>%
+  mutate(weekday_vs_weekend=ifelse(day%in%c("Saturday","Sunday"),"weekend","weekday"))%>%
+  mutate(day=factor(day,levels=c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")))%>%
+  mutate(weekday_vs_weekend=factor(weekday_vs_weekend,levels=c("weekend","weekday")))
+accel_df
 
+accel_df1=
+  accel_df%>%
+  pivot_longer(activity_1:activity_1440,names_to = "activity",names_prefix = "activity_",values_to="value")
+accel_df1
+accel_total_df=
+  accel_df1%>%
+  group_by(week,day_id,day,weekday_vs_weekend)%>%
+  summarize(activity_total=sum(value))
+ggplot(accel_total_df,aes(x=day_id,y=activity_total))+
+  geom_point()+
+  geom_line()+
+  labs(
+    title="total activity value for each day",
+    x="day",
+    y="activity value"
+  )
+accel_total_df
+
+
+ggplot(accel_df1,aes(x=activity,y=value,group=day_id))+
+  geom_point(aes(color=week))+
+  scale_x_discrete(
+    breaks=c(1,350,900),
+    labels=c("activity_1","activity_350","activity_900")
+  )+
+  labs(
+    title="24-hour activity for each day",
+    x="activity",
+    y="activity value"
+  )
+  
 ```
 
+1. The tidied dataset have week, day_id, day, weekday_vs_weekend, and activity variables on each minute of a 24-hour day starting at midnight.The dataset have 35 observations, and have overall 1444 variables.
+2. There are not apparent trend for the total activity for each day, but the fluctuation is large beginning from day 22.
+3.The activity value for each minute tend to go down as weeks pass from week 1 to week 5.
+
+##
 
