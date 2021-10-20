@@ -13,12 +13,14 @@ library(ggplot2)
 data("instacart")
 data("brfss_smart2010")
 instacart
-?ggplot
+brfss_smart2010
 ```
 
 ## Data Description
 The Instacart data contains observations on `r nrow(instacart)` orders from instacart store online. The data include `r ncol(instacart)` variables, and are the characteristics of the orders and the product，including product name, product id, order name, etc.
 For observation at row1, the order is id is 1, and product id is 49302, the order that the product was add to chart is 1, and it have been ordered before by this customer. The user id is 112108, and the order belongs to the train evaluation set. The order number for this user is 4, and the order was placed on Thursday 10am. It have been 9 days since this user's last order, and the product is Bulgarian Yogurt. The aisle id is 120, and the product belongs to the yogurt aisle. The department id is 16, and is dairy eggs.
+
+##Problem 1
 
 ```{r}
 aisle_df1=
@@ -26,6 +28,7 @@ aisle_df1=
   group_by(aisle)%>%
   summarize(n_obs=n())%>%
   mutate(rank=rank(n_obs))
+aisle_df1
 
 aisle_df2=
   aisle_df1%>%
@@ -34,12 +37,19 @@ aisle_df2=
 aisle_df2
 
 
+ggplot(aisle_df2,aes(x=aisle,y=n_obs))+
+  geom_point()+
+  theme(axis.text.x=element_text(angle=90))+
+  labs(
+    title = "Number of items ordered in each aisle",
+    x = "aisle",
+    y = "number of items ordered")
 
 
 
 ```
-#
-1. There are 134 aisles, and the most items that ordered from is the fresh vagetables aisle.
+
+1.There are 134 aisles, and the most items that ordered from is the fresh vagetables aisle.
 
 ```{r}
 baking_ingredients_df=
@@ -84,6 +94,7 @@ bind_rows(baking_ingredients_df,dog_food_care_df,packaged_vegetables_fruits_df)
 
 
 ```
+2.The three most popular items in the baking ingredients aisle is `r baking_ingredients_df$product_name`, in the dog food care aisle is `r dog_food_care_df$product_name`, and in the packaged vegetables fruits aisle is `r packaged_vegetables_fruits_df$product_name`.
 
 ```{r}
 pink_lady_apples_df=
@@ -112,4 +123,84 @@ df_mean_order_hour_of_day=
   rename("Sunday"="0","Monday"="1","Tuesday"="2","Wednesday"="3","Thursday"="4","Friday"="5","Saturday"="6")
 df_mean_order_hour_of_day
 ```
+3. The table shows the average order hour of the day for Pink Lady Apples	and Coffee Ice Cream on each day of a week. For example, the average order hour of the day for Pink Lady Apples is 13.44118	on Sunday.
+
+##Problem 2
+
+```{r}
+brfss_df=
+  brfss_smart2010%>%
+  janitor::clean_names()%>%
+  filter(topic=="Overall Health")%>%
+  filter(response%in%c("Poor","Fair","Good","Very good","Excellent"))%>%
+  mutate(response=factor(response,levels=c("Poor","Fair","Good","Very good","Excellent")))
+
+brfss_2002_df=
+  brfss_df%>%
+  filter(year=="2002")%>%
+  group_by(locationabbr,locationdesc)%>%
+  summarize(n_obs=n())%>%
+  group_by(locationabbr)%>%
+  summarize(n_obs1=n())%>%
+  filter(n_obs1>=7)
+
+brfss_2010_df=
+  brfss_df%>%
+  filter(year=="2010")%>%
+  group_by(locationabbr,locationdesc)%>%
+  summarize(n_obs=n())%>%
+  group_by(locationabbr)%>%
+  summarize(n_obs1=n())%>%
+  filter(n_obs1>=7)
+
+brfss_df
+brfss_2002_df
+brfss_2010_df
+
+```
+
+1. In 2002,`r brfss_2002_df$locationabbr` were observed at 7 or more locations.In 2010,`r brfss_2010_df$locationabbr` were observed at 7 or more locations.
+
+```{r}
+brfss_excellent_df=
+  brfss_df%>%
+  filter(response=="Excellent")%>%
+  select(year,locationabbr,data_value)%>%
+  drop_na()%>%
+  group_by(locationabbr,year)%>%
+  summarize(average_data_value=mean(data_value))
+brfss_excellent_df
+ggplot(brfss_excellent_df,aes(x=year,y=average_data_value,group=locationabbr,color=locationabbr))+
+  geom_point()+
+  geom_line()+
+  labs(
+    title="Average Data Value From 2002 to 2010",
+    x="year",
+    y="Average Data Value"
+  )
+
+```
+
+2.The dataset have 433 rows and 3 columns, variable names are `r names(brfss_excellent_df)`.
+
+```{r}
+brfss_data_value_df=
+  brfss_df%>%
+  filter(year%in%c("2006","2010"))%>%
+  filter(locationabbr=="NY")
+brfss_data_value_df
+ggplot(brfss_data_value_df,aes(x=response,y=data_value,color=year))+
+  geom_point(alpha = .3) +
+  geom_smooth(se = FALSE) + 
+  facet_grid(. ~ year)
+  
+```
+
+3.The dataset have 75 rows and 23 columns, which contains 45 observations for the year 2010, and 30 observations for the year 2006.
+
+##Problem 3
+```{r}
+
+```
+
 
